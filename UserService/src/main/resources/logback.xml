@@ -25,7 +25,7 @@
 		</encoder>
 	</appender>
 	<!-- Send logs to both console and file audit -->
-	<logger name="com.stackroute" level="error" additivity="false">
+	<logger name="com.stackroute" level="info" additivity="false">
 		<appender-ref ref="FILE-AUDIT" />
 		<appender-ref ref="STDOUT" />
 	</logger>

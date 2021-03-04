@@ -1,5 +1,22 @@
 package com.stackroute.keepnote.controller;
 
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.stackroute.keepnote.exceptions.UserAlreadyExistsException;
+import com.stackroute.keepnote.exceptions.UserNotFoundException;
+import com.stackroute.keepnote.model.User;
+import com.stackroute.keepnote.repository.UserRepository;
 import com.stackroute.keepnote.service.UserService;
 
 /*
@@ -10,7 +27,7 @@ import com.stackroute.keepnote.service.UserService;
  * format. Starting from Spring 4 and above, we can use @RestController annotation which 
  * is equivalent to using @Controller and @ResposeBody annotation
  */
-
+@RestController
 public class UserController {
 
 	/*
@@ -18,6 +35,8 @@ public class UserController {
 	 * autowiring) Please note that we should not create an object using the new
 	 * keyword
 	 */
+	@Autowired
+	UserService userService;
 
 	public UserController(UserService userService) {
 	}
@@ -26,42 +45,86 @@ public class UserController {
 	 * Define a handler method which will create a specific user by reading the
 	 * Serialized object from request body and save the user details in the
 	 * database. This handler method should return any one of the status messages
-	 * basis on different situations:
-	 * 1. 201(CREATED) - If the user created successfully. 
-	 * 2. 409(CONFLICT) - If the userId conflicts with any existing user
+	 * basis on different situations: 1. 201(CREATED) - If the user created
+	 * successfully. 2. 409(CONFLICT) - If the userId conflicts with any existing
+	 * user
 	 * 
 	 * This handler method should map to the URL "/user" using HTTP POST method
 	 */
+	@PostMapping("/api/v1/user")
+	public ResponseEntity<?> registerUser(@RequestBody User user) {
+		try {
+			user.setUserAddedDate(new Date());
+			User registeredUser = userService.registerUser(user);
+			return new ResponseEntity<User>(registeredUser, HttpStatus.CREATED);
+		} catch (UserAlreadyExistsException e) {
+			return new ResponseEntity<String>("User Already Exists.", HttpStatus.CONFLICT);
+		}
+
+	}
 
 	/*
 	 * Define a handler method which will update a specific user by reading the
 	 * Serialized object from request body and save the updated user details in a
 	 * database. This handler method should return any one of the status messages
-	 * basis on different situations: 
-	 * 1. 200(OK) - If the user updated successfully.
+	 * basis on different situations: 1. 200(OK) - If the user updated successfully.
 	 * 2. 404(NOT FOUND) - If the user with specified userId is not found.
 	 * 
-	 * This handler method should map to the URL "/api/v1/user/{id}" using HTTP PUT method.
+	 * This handler method should map to the URL "/api/v1/user/{id}" using HTTP PUT
+	 * method.
 	 */
+	@PutMapping("/api/v1/user/{id}")
+	public ResponseEntity<?> updateuser(@RequestBody User user, @PathVariable("id") String id) {
+		try {
+			User updatedUser = userService.updateUser(id, user);
+			return new ResponseEntity<User>(updatedUser, HttpStatus.OK);
+
+		} catch (UserNotFoundException e) {
+			return new ResponseEntity<String>("User Not Found.", HttpStatus.NOT_FOUND);
+		}
+
+	}
 
 	/*
-	 * Define a handler method which will delete a user from a database.
-	 * This handler method should return any one of the status messages basis on
-	 * different situations: 
-	 * 1. 200(OK) - If the user deleted successfully from database. 
-	 * 2. 404(NOT FOUND) - If the user with specified userId is not found.
+	 * Define a handler method which will delete a user from a database. This
+	 * handler method should return any one of the status messages basis on
+	 * different situations: 1. 200(OK) - If the user deleted successfully from
+	 * database. 2. 404(NOT FOUND) - If the user with specified userId is not found.
 	 *
-	 * This handler method should map to the URL "/api/v1/user/{id}" using HTTP Delete
-	 * method" where "id" should be replaced by a valid userId without {}
+	 * This handler method should map to the URL "/api/v1/user/{id}" using HTTP
+	 * Delete method" where "id" should be replaced by a valid userId without {}
 	 */
+	@DeleteMapping("/api/v1/user/{id}")
+	public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
+		try {
+			if (userService.deleteUser(id)) {
+				return new ResponseEntity<String>("User Deleted", HttpStatus.OK);
+			}
+
+		} catch (UserNotFoundException e) {
+			return new ResponseEntity<String>("User Not Found.", HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<String>("User Not Found.", HttpStatus.NOT_FOUND);
+
+	}
 
 	/*
 	 * Define a handler method which will show details of a specific user. This
 	 * handler method should return any one of the status messages basis on
-	 * different situations: 
-	 * 1. 200(OK) - If the user found successfully. 
-	 * 2. 404(NOT FOUND) - If the user with specified userId is not found. 
-	 * This handler method should map to the URL "/api/v1/user/{id}" using HTTP GET method where "id" should be
-	 * replaced by a valid userId without {}
+	 * different situations: 1. 200(OK) - If the user found successfully. 2. 404(NOT
+	 * FOUND) - If the user with specified userId is not found. This handler method
+	 * should map to the URL "/api/v1/user/{id}" using HTTP GET method where "id"
+	 * should be replaced by a valid userId without {}
 	 */
+	@GetMapping("/api/v1/user/{id}")
+	public ResponseEntity<?> getUser(@PathVariable("id") String id) {
+		try {
+			User user = userService.getUserById(id);
+			return new ResponseEntity<User>(user, HttpStatus.OK);
+
+		} catch (UserNotFoundException e) {
+			return new ResponseEntity<String>("User Not Found.", HttpStatus.NOT_FOUND);
+		}
+
+	}
 }

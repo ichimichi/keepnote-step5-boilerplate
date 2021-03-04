@@ -11,12 +11,11 @@ public interface UserService {
 	 * corresponding Impl classes
 	 */
 
-	 User registerUser(User user) throws UserAlreadyExistsException;
+	User registerUser(User user) throws UserAlreadyExistsException;
 
-	    User updateUser(String userId,User user) throws UserNotFoundException;
+	User updateUser(String userId, User user) throws UserNotFoundException;
 
-	    boolean deleteUser(String userId) throws UserNotFoundException;
+	boolean deleteUser(String userId) throws UserNotFoundException;
 
-
-	    User getUserById(String userId) throws UserNotFoundException;
+	User getUserById(String userId) throws UserNotFoundException;
 }
