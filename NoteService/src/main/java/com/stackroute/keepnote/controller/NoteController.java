@@ -56,16 +56,12 @@ public class NoteController {
 	 * method
 	 */
 	@PostMapping("/api/v1/note")
-	public ResponseEntity<?> createNote(@RequestBody Note note, HttpServletRequest request) {
-		try {
-			note.setNoteCreationDate(new Date());
-			noteService.createNote(note);
-			return new ResponseEntity<>("Note added.", HttpStatus.CREATED);
-
-		} catch (Exception e) {
-			return new ResponseEntity<>("Note already exists.", HttpStatus.CONFLICT);
+	public ResponseEntity<?> addNote(@RequestBody Note note) {
+		if (noteService.createNote(note)) {
+			return new ResponseEntity<Note>(note, HttpStatus.CREATED);
+		} else {
+			return new ResponseEntity<String>("Note not created.", HttpStatus.CONFLICT);
 		}
-
 	}
 
 	/*
@@ -78,27 +74,22 @@ public class NoteController {
 	 * Delete method" where "id" should be replaced by a valid noteId without {}
 	 */
 	@DeleteMapping("/api/v1/note/{userId}/{id}")
-	public ResponseEntity<?> deleteNote(@PathVariable("userId") String userId, @PathVariable("id") int id) {
-		try {
-			noteService.deleteNote(userId, id);
-			return new ResponseEntity<>("Note deleted.", HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>("Note not found.", HttpStatus.NOT_FOUND);
+	public ResponseEntity<String> deleteNote(@PathVariable String userId, @PathVariable() int id) {
+		if (noteService.deleteNote(userId, id)) {
+			return new ResponseEntity<String>("Note Deleted.", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<String>("Note not Deleted.", HttpStatus.NOT_FOUND);
 		}
-
 	}
 
 	@DeleteMapping("/api/v1/note/{userId}")
-	public ResponseEntity<?> deleteAllNotes(@PathVariable("userId") String userId) {
+	public ResponseEntity<String> deleteAllNotes(@PathVariable() String userId) {
 		try {
 			noteService.deleteAllNotes(userId);
-			return new ResponseEntity<>("All Notes Deleted.", HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>("Error.", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Deleted all notes.", HttpStatus.OK);
+		} catch (NoteNotFoundExeption exception) {
+			return new ResponseEntity<String>("\"Notes not Deleted.", HttpStatus.NOT_FOUND);
 		}
-
 	}
 
 	/*
